@@ -1,0 +1,21 @@
+# Node
+node_modules/
+dist/
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Tests and coverage
+coverage/
+*.test.ts
+*.test.tsx
+__tests__/
+
+# Env
+.env

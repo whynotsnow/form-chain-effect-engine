@@ -1,0 +1,7 @@
+tests/
+example/
+src/
+tsconfig.json
+jest.config.ts
+.prettierrc
+.vscode/
