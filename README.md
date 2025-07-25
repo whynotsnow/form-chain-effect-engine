@@ -61,7 +61,22 @@ import { useFormChainEffectEngine } from "form-chain-effect-engine";
   ```
 
 - `options?: UseFormChainEffectEngineOptions`  
-  可选配置，例如是否启用链路中断。
+  可选，是否启用高级链路控制（如 stop），是否开启 debugLog 日志，effectActions 扩展等。
+
+#### options 详细说明
+
+- `enableAdvancedControl?: boolean` 是否启用链路中断等高级控制
+- `debugLog?: boolean` 是否开启调试日志，开启后会在控制台输出 effect 触发、循环依赖等调试信息
+- `effectActions?: Record<string, any>` 注入 effect 的扩展方法
+
+#### debugLog 用法示例
+
+```ts
+const { onValuesChange } = useFormChainEffectEngine(form, config, {
+  debugLog: true,
+});
+// 控制台会输出 effect 触发、循环依赖等调试信息
+```
 
 #### 返回
 
@@ -69,6 +84,47 @@ import { useFormChainEffectEngine } from "form-chain-effect-engine";
   传递给 Form 的 `onValuesChange`，自动处理依赖链 effect。
 - `manualTrigger: (field: string, value: any) => void`  
   手动触发某字段的副作用链。
+
+### effectActions 扩展
+
+`effectActions` 是 effect 的第四个参数，用于注入自定义的扩展方法（如 setGroupMeta、dispatch 等）。你可以在 useFormChainEffectEngine 的 options 里传入 effectActions，并在 effect 里使用。
+
+#### 类型定义（支持泛型自定义）
+
+```ts
+export type EffectFn<EA = Record<string, any>> = (
+  changedValue: any,
+  allValues: Record<string, any>,
+  chain: Chain,
+  effectActions?: EA
+) => void;
+```
+
+#### 用法示例
+
+```ts
+const effectActions = {
+  setGroupMeta: (meta) => {
+    /* ... */
+  },
+  dispatch: (action) => {
+    /* ... */
+  },
+};
+
+const config = {
+  A: {
+    effect: (val, all, chain, actions) => {
+      actions?.setGroupMeta?.({ key: val });
+      actions?.dispatch?.({ type: "A_CHANGED", payload: val });
+    },
+  },
+};
+
+const { onValuesChange } = useFormChainEffectEngine(form, config, {
+  effectActions,
+});
+```
 
 ---
 
@@ -225,6 +281,47 @@ import { useFormChainEffectEngine } from "form-chain-effect-engine";
 
 - `onValuesChange: (changed: Record<string, any>) => void` – Pass into `Form`'s `onValuesChange` to auto-handle effect chains.
 - `manualTrigger: (field: string, value: any) => void` – Manually trigger a field's effect chain.
+
+### effectActions 扩展
+
+`effectActions` 是 effect 的第四个参数，用于注入自定义的扩展方法（如 setGroupMeta、dispatch 等）。你可以在 useFormChainEffectEngine 的 options 里传入 effectActions，并在 effect 里使用。
+
+#### 类型定义（支持泛型自定义）
+
+```ts
+export type EffectFn<EA = Record<string, any>> = (
+  changedValue: any,
+  allValues: Record<string, any>,
+  chain: Chain,
+  effectActions?: EA
+) => void;
+```
+
+#### 用法示例
+
+```ts
+const effectActions = {
+  setGroupMeta: (meta) => {
+    /* ... */
+  },
+  dispatch: (action) => {
+    /* ... */
+  },
+};
+
+const config = {
+  A: {
+    effect: (val, all, chain, actions) => {
+      actions?.setGroupMeta?.({ key: val });
+      actions?.dispatch?.({ type: "A_CHANGED", payload: val });
+    },
+  },
+};
+
+const { onValuesChange } = useFormChainEffectEngine(form, config, {
+  effectActions,
+});
+```
 
 ---
 

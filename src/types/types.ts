@@ -20,25 +20,39 @@ export interface Chain {
   // redirectTo?: (field: string) => void;
 }
 
-export type EffectFn = (changedValue: any, allValues: Record<string, any>, chain: Chain) => void;
+export type EffectFn<EA = Record<string, any>> = (
+  changedValue: any,
+  allValues: Record<string, any>,
+  chain: Chain,
+  effectActions?: EA
+) => void;
 
-export interface DependencyConfig {
+export interface DependencyConfig<EA = Record<string, any>> {
   dependents?: string[];
-  effect?: EffectFn;
+  effect?: EffectFn<EA>;
 }
 
-export interface FormChainEffectMap {
+export interface FormChainEffectMap<EA = Record<string, any>> {
   [field: string]: {
     dependents?: string[];
-    effect?: EffectFn;
+    effect?: EffectFn<EA>;
   };
 }
 
-export interface UseFormChainEffectEngineOptions {
+export interface UseFormChainEffectEngineOptions<EA = Record<string, any>> {
   enableAdvancedControl?: boolean;
+  debugLog?: boolean;
+  effectActions?: EA;
 }
 
 export interface ChainControllerOptions {
   enableAdvancedControl: boolean;
   trigger: (field: string, chain: Chain, visited: Set<string>) => void;
 }
+
+export type TriggerFn = (
+  field: string,
+  chain: Chain,
+  visited: Set<string>,
+  overrideValue?: any
+) => void;
