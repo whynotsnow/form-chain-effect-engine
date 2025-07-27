@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.0.0] - 2024-07-27
+
+### Added
+
+- 新增 onEffectResult 参数，提供监控 effect 调用和消费 effect 返回值的能力，更优雅地处理 effect 中的 UI 事件和业务逻辑。
+- 支持异步 effect 的返回值处理。
+- 完善 onEffectResult 相关的测试用例，覆盖同步、异步、边界场景。
+
+### Changed
+
+- **API 重构**：useFormChainEffectEngine 改为统一配置对象方式，提升 API 设计的一致性和扩展性。
+- **错误处理增强**：添加了更完善的参数验证和错误处理，包括字段名称验证、表单值获取异常处理、回调函数异常处理等。
+- **调试信息优化**：增加了更详细的调试日志，便于问题排查和开发调试。
+- README.md 补充 onEffectResult 参数说明和用法示例，更新所有示例代码为新的 API 格式。
+
+### Breaking Changes
+
+- useFormChainEffectEngine 函数签名变更：从多参数改为统一配置对象
+- 旧版本调用方式不再支持，需要更新为新的对象参数格式
+
 ## [1.0.2] - 2024-07-25
 
 ### Changed

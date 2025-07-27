@@ -34,7 +34,7 @@ npm install form-chain-effect-engine
 
 ## 🧩 API 说明
 
-### `useFormChainEffectEngine`
+### useFormChainEffectEngine
 
 ```ts
 import { useFormChainEffectEngine } from "form-chain-effect-engine";
@@ -42,26 +42,31 @@ import { useFormChainEffectEngine } from "form-chain-effect-engine";
 
 #### 参数
 
-- `form: FormInstance`  
-  Ant Design Form 的实例对象。
-- `config: FormChainEffectMap`  
-  字段依赖与副作用配置，结构如下：
+- `config: UseFormChainEffectEngineConfig`  
+  统一配置对象，包含以下属性：
 
-  ```ts
-  interface FormChainEffectMap {
-    [field: string]: {
-      dependents?: string[]; // 依赖的下游字段
-      effect?: (
-        changedValue: any,
-        allValues: Record<string, any>,
-        chain: Chain
-      ) => void; // 副作用函数
-    };
-  }
-  ```
+  - `form: FormInstance`  
+    Ant Design Form 的实例对象。
+  - `config: FormChainEffectMap`  
+    字段依赖与副作用配置，结构如下：
 
-- `options?: UseFormChainEffectEngineOptions`  
-  可选，是否启用高级链路控制（如 stop），是否开启 debugLog 日志，effectActions 扩展等。
+    ```ts
+    interface FormChainEffectMap {
+      [field: string]: {
+        dependents?: string[]; // 依赖的下游字段
+        effect?: (
+          changedValue: any,
+          allValues: Record<string, any>,
+          chain: Chain
+        ) => void; // 副作用函数
+      };
+    }
+    ```
+
+  - `options?: UseFormChainEffectEngineOptions`  
+    可选，是否启用高级链路控制（如 stop），是否开启 debugLog 日志，effectActions 扩展等。
+  - `onEffectResult?: (options: onEffectResultOptions) => void`  
+    可选，effect 执行完成后的回调函数，用于监控和处理 effect 的返回值。
 
 #### options 详细说明
 
@@ -72,10 +77,59 @@ import { useFormChainEffectEngine } from "form-chain-effect-engine";
 #### debugLog 用法示例
 
 ```ts
-const { onValuesChange } = useFormChainEffectEngine(form, config, {
-  debugLog: true,
+const { onValuesChange } = useFormChainEffectEngine({
+  form,
+  config,
+  options: { debugLog: true },
 });
 // 控制台会输出 effect 触发、循环依赖等调试信息
+```
+
+#### onEffectResult 回调参数
+
+```ts
+interface onEffectResultOptions {
+  fieldName: string; // 当前触发 effect 的字段名称
+  field: {
+    dependents?: string[];
+    effect?: EffectFn;
+  }; // 完整的字段配置对象
+  result: any; // effect 的返回值
+  chain: Chain; // 当前的链路信息
+  currentVal: any; // 当前字段值
+  allValues: Record<string, any>; // 所有表单值
+}
+```
+
+#### onEffectResult 用法示例
+
+```ts
+const { onValuesChange } = useFormChainEffectEngine({
+  form,
+  config,
+  options: { debugLog: true },
+  onEffectResult: ({
+    fieldName,
+    field,
+    result,
+    chain,
+    currentVal,
+    allValues,
+  }) => {
+    // 监控 effect 执行结果
+    console.log(`字段名称:`, fieldName);
+    console.log(`字段配置:`, field);
+    console.log(`effect 返回值:`, result);
+    console.log(`链路信息:`, chain);
+
+    // 基于结果做业务处理
+    if (result?.success) {
+      showSuccessMessage();
+    } else if (result?.error) {
+      showErrorMessage(result.error);
+    }
+  },
+});
 ```
 
 #### 返回
@@ -83,9 +137,11 @@ const { onValuesChange } = useFormChainEffectEngine(form, config, {
 - `onValuesChange: (changed: Record<string, any>) => void`  
   传递给 Form 的 `onValuesChange`，自动处理依赖链 effect。
 - `manualTrigger: (field: string, value: any) => void`  
-  手动触发某字段的副作用链。
+  手动触发某字段的 effect 链。
 
-### effectActions 扩展
+---
+
+### 🔧 effectActions 扩展
 
 `effectActions` 是 effect 的第四个参数，用于注入自定义的扩展方法（如 setGroupMeta、dispatch 等）。你可以在 useFormChainEffectEngine 的 options 里传入 effectActions，并在 effect 里使用。
 
@@ -121,8 +177,10 @@ const config = {
   },
 };
 
-const { onValuesChange } = useFormChainEffectEngine(form, config, {
-  effectActions,
+const { onValuesChange } = useFormChainEffectEngine({
+  form,
+  config,
+  options: { effectActions },
 });
 ```
 
@@ -160,7 +218,14 @@ const config = {
 
 export default function DemoForm() {
   const [form] = Form.useForm();
-  const { onValuesChange } = useFormChainEffectEngine(form, config);
+  const { onValuesChange } = useFormChainEffectEngine({
+    form,
+    config,
+    options: { debugLog: true },
+    onEffectResult: ({ fieldName, field, result }) => {
+      console.log(`字段 ${fieldName} 的 Effect 执行结果:`, result);
+    },
+  });
 
   return (
     <Form form={form} onValuesChange={onValuesChange}>
@@ -197,8 +262,10 @@ const config = {
   // ...
 };
 
-const { onValuesChange } = useFormChainEffectEngine(form, config, {
-  enableAdvancedControl: true,
+const { onValuesChange } = useFormChainEffectEngine({
+  form,
+  config,
+  options: { enableAdvancedControl: true },
 });
 ```
 
@@ -251,7 +318,7 @@ npm install form-chain-effect-engine
 
 ## 🧩 API
 
-### `useFormChainEffectEngine`
+### useFormChainEffectEngine
 
 ```ts
 import { useFormChainEffectEngine } from "form-chain-effect-engine";
@@ -259,34 +326,103 @@ import { useFormChainEffectEngine } from "form-chain-effect-engine";
 
 **Parameters**
 
-- `form: FormInstance` – The Ant Design Form instance.
-- `config: FormChainEffectMap` – Dependency and effect configuration:
+- `config: UseFormChainEffectEngineConfig` – Unified configuration object containing:
 
-  ```ts
-  interface FormChainEffectMap {
-    [field: string]: {
-      dependents?: string[];
-      effect?: (
-        changedValue: any,
-        allValues: Record<string, any>,
-        chain: Chain
-      ) => void;
-    };
-  }
-  ```
+  - `form: FormInstance` – The Ant Design Form instance.
+  - `config: FormChainEffectMap` – Dependency and effect configuration:
 
-- `options?: UseFormChainEffectEngineOptions` – Optional: enable advanced chain controls like stop.
+    ```ts
+    interface FormChainEffectMap {
+      [field: string]: {
+        dependents?: string[]; // Dependent downstream fields
+        effect?: (
+          changedValue: any,
+          allValues: Record<string, any>,
+          chain: Chain
+        ) => void; // Effect function
+      };
+    }
+    ```
+
+  - `options?: UseFormChainEffectEngineOptions` – Optional: enable advanced chain controls, debug logging, effectActions extension, etc.
+  - `onEffectResult?: (options: onEffectResultOptions) => void` – Optional: callback function executed after effect completion, for monitoring and processing effect return values.
+
+#### options Details
+
+- `enableAdvancedControl?: boolean` – Whether to enable advanced chain controls like stop
+- `debugLog?: boolean` – Whether to enable debug logging, outputs effect triggers, circular dependencies, etc. to console
+- `effectActions?: Record<string, any>` – Inject extension methods into effect
+
+#### debugLog Usage Example
+
+```ts
+const { onValuesChange } = useFormChainEffectEngine({
+  form,
+  config,
+  options: { debugLog: true },
+});
+// Console will output effect triggers, circular dependencies, etc.
+```
+
+#### onEffectResult Callback Parameters
+
+```ts
+interface onEffectResultOptions {
+  fieldName: string; // Current field name that triggered the effect
+  field: {
+    dependents?: string[];
+    effect?: EffectFn;
+  }; // Complete field configuration object
+  result: any; // Effect return value
+  chain: Chain; // Current chain information
+  currentVal: any; // Current field value
+  allValues: Record<string, any>; // All form values
+}
+```
+
+#### onEffectResult Usage Example
+
+```ts
+const { onValuesChange } = useFormChainEffectEngine({
+  form,
+  config,
+  options: { debugLog: true },
+  onEffectResult: ({
+    fieldName,
+    field,
+    result,
+    chain,
+    currentVal,
+    allValues,
+  }) => {
+    // Monitor effect execution results
+    console.log(`Field name:`, fieldName);
+    console.log(`Field config:`, field);
+    console.log(`Effect return value:`, result);
+    console.log(`Chain info:`, chain);
+
+    // Handle business logic based on results
+    if (result?.success) {
+      showSuccessMessage();
+    } else if (result?.error) {
+      showErrorMessage(result.error);
+    }
+  },
+});
+```
 
 **Returns**
 
 - `onValuesChange: (changed: Record<string, any>) => void` – Pass into `Form`'s `onValuesChange` to auto-handle effect chains.
-- `manualTrigger: (field: string, value: any) => void` – Manually trigger a field's effect chain.
+- `manualTrigger: (field: string, value?: any) => void` – Manually trigger a field's effect chain.
 
-### effectActions 扩展
+---
 
-`effectActions` 是 effect 的第四个参数，用于注入自定义的扩展方法（如 setGroupMeta、dispatch 等）。你可以在 useFormChainEffectEngine 的 options 里传入 effectActions，并在 effect 里使用。
+### 🔧 effectActions Extension
 
-#### 类型定义（支持泛型自定义）
+`effectActions` is the fourth parameter of effect, used to inject custom extension methods (such as setGroupMeta, dispatch, etc.). You can pass effectActions in the options of useFormChainEffectEngine and use it in effect.
+
+#### Type Definition (Supports Generic Customization)
 
 ```ts
 export type EffectFn<EA = Record<string, any>> = (
@@ -297,7 +433,7 @@ export type EffectFn<EA = Record<string, any>> = (
 ) => void;
 ```
 
-#### 用法示例
+#### Usage Example
 
 ```ts
 const effectActions = {
@@ -318,8 +454,10 @@ const config = {
   },
 };
 
-const { onValuesChange } = useFormChainEffectEngine(form, config, {
-  effectActions,
+const { onValuesChange } = useFormChainEffectEngine({
+  form,
+  config,
+  options: { effectActions },
 });
 ```
 
@@ -354,7 +492,14 @@ const config = {
 
 export default function DemoForm() {
   const [form] = Form.useForm();
-  const { onValuesChange } = useFormChainEffectEngine(form, config);
+  const { onValuesChange } = useFormChainEffectEngine({
+    form,
+    config,
+    options: { debugLog: true },
+    onEffectResult: ({ fieldName, field, result }) => {
+      console.log("Effect execution result:", result);
+    },
+  });
 
   return (
     <Form form={form} onValuesChange={onValuesChange}>
@@ -384,15 +529,17 @@ const config = {
     dependents: ["B"],
     effect: (val, all, chain) => {
       if (val === "stop") {
-        chain.stop?.();
+        chain.stop?.(); // Stop subsequent chain
       }
     },
   },
   // ...
 };
 
-const { onValuesChange } = useFormChainEffectEngine(form, config, {
-  enableAdvancedControl: true,
+const { onValuesChange } = useFormChainEffectEngine({
+  form,
+  config,
+  options: { enableAdvancedControl: true },
 });
 ```
 

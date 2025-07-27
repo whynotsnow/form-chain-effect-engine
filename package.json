@@ -1,6 +1,6 @@
 {
   "name": "form-chain-effect-engine",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "A dependency-driven form effect engine for React + Ant Design",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",

@@ -27,10 +27,6 @@ export type EffectFn<EA = Record<string, any>> = (
   effectActions?: EA
 ) => void;
 
-export interface DependencyConfig<EA = Record<string, any>> {
-  dependents?: string[];
-  effect?: EffectFn<EA>;
-}
 
 export interface FormChainEffectMap<EA = Record<string, any>> {
   [field: string]: {
@@ -56,3 +52,22 @@ export type TriggerFn = (
   visited: Set<string>,
   overrideValue?: any
 ) => void;
+
+export interface UseFormChainEffectEngineConfig {
+  form: FormInstance;
+  config: FormChainEffectMap;
+  options?: UseFormChainEffectEngineOptions;
+  onEffectResult?: (options: onEffectResultOptions) => void;
+}
+
+export interface onEffectResultOptions {
+  fieldName: string; // 当前触发 effect 的字段名称
+  field: {
+    dependents?: string[];
+    effect?: EffectFn<Record<string, any>>;
+  }; // 完整的字段配置对象
+  result: any; // effect 的返回值
+  chain: Chain; // 当前的链路信息
+  currentVal: any; // 当前字段值
+  allValues: Record<string, any>; // 所有表单值
+}
