@@ -1,16 +1,15 @@
-import { useCallback } from 'react';
-import type { FormInstance } from 'antd/lib/form';
+import { useCallback } from "react";
 import type {
   Chain,
-  FormChainEffectMap,
-  onEffectResultOptions,
   TriggerFn,
-  UseFormChainEffectEngineOptions,
   UseFormChainEffectEngineConfig,
-} from '../types/types';
+} from "../types/types";
 
-
-function createChain(source: string, enableAdvanced: boolean, triggerFn: TriggerFn): Chain {
+function createChain(
+  source: string,
+  enableAdvanced: boolean,
+  _triggerFn: TriggerFn,
+): Chain {
   const chain: Chain = {
     source,
     path: [source],
@@ -36,24 +35,29 @@ export function useFormChainEffectEngine({
   form,
   config,
   options = {},
-  onEffectResult
+  onEffectResult,
 }: UseFormChainEffectEngineConfig) {
   const enableAdvanced = options.enableAdvancedControl ?? false;
   const debugLog = options.debugLog ?? false;
   const effectActions = options.effectActions ?? {};
 
   const trigger = useCallback(
-    (field: string, chain: Chain, visited: Set<string>, overrideValue?: any) => {
+    (
+      field: string,
+      chain: Chain,
+      visited: Set<string>,
+      overrideValue?: any,
+    ) => {
       // 参数验证
-      if (!field || typeof field !== 'string') {
-        console.error('[form-chain-effect-engine] 无效的字段名称:', field);
+      if (!field || typeof field !== "string") {
+        console.error("[form-chain-effect-engine] 无效的字段名称:", field);
         return;
       }
 
       if (visited.has(field)) {
         if (debugLog) {
           console.warn(
-            `[form-chain-effect-engine] 检测到循环依赖，链路已终止: ${[...chain.path, field].join(' → ')}`
+            `[form-chain-effect-engine] 检测到循环依赖，链路已终止: ${[...chain.path, field].join(" → ")}`,
           );
         }
         return;
@@ -63,7 +67,9 @@ export function useFormChainEffectEngine({
       const item = config[field];
       if (!item) {
         if (debugLog) {
-          console.log(`[form-chain-effect-engine] 字段 ${field} 未在配置中找到`);
+          console.log(
+            `[form-chain-effect-engine] 字段 ${field} 未在配置中找到`,
+          );
         }
         return;
       }
@@ -71,12 +77,18 @@ export function useFormChainEffectEngine({
       // 安全地获取表单值
       let currentVal: any;
       let allValues: Record<string, any>;
-      
+
       try {
-        currentVal = overrideValue !== undefined ? overrideValue : form.getFieldValue(field);
+        currentVal =
+          overrideValue !== undefined
+            ? overrideValue
+            : form.getFieldValue(field);
         allValues = form.getFieldsValue();
       } catch (err) {
-        console.error(`[form-chain-effect-engine] 获取表单值失败: 字段 ${field}, 错误:`, err);
+        console.error(
+          `[form-chain-effect-engine] 获取表单值失败: 字段 ${field}, 错误:`,
+          err,
+        );
         return;
       }
 
@@ -84,41 +96,69 @@ export function useFormChainEffectEngine({
         console.log(
           `[form-chain-effect-engine] 触发 effect: ${field}, 当前值:`,
           currentVal,
-          ', 链路:',
-          chain.path
+          ", 链路:",
+          chain.path,
         );
       }
-      
+
       let result: any;
 
-      if (item.effect && typeof item.effect === 'function') {
+      if (item.effect && typeof item.effect === "function") {
         try {
           result = item.effect(currentVal, allValues, chain, effectActions);
         } catch (err) {
-          console.error(`[form-chain-effect-engine] effect 执行异常: 字段 ${field}, 错误:`, err);
+          console.error(
+            `[form-chain-effect-engine] effect 执行异常: 字段 ${field}, 错误:`,
+            err,
+          );
           // 不中断链路，继续执行依赖字段
         }
       }
 
-      if(result) {
+      if (result) {
         // 处理异步 effect 的返回值
         if (result instanceof Promise) {
-          result.then(resolvedResult => {
-            if (resolvedResult) {
-              try {
-                onEffectResult?.({fieldName: field, field: item, result: resolvedResult, chain, currentVal, allValues});
-              } catch (err) {
-                console.error(`[form-chain-effect-engine] onEffectResult 回调执行异常: 字段 ${field}, 错误:`, err);
+          result
+            .then((resolvedResult) => {
+              if (resolvedResult) {
+                try {
+                  onEffectResult?.({
+                    fieldName: field,
+                    field: item,
+                    result: resolvedResult,
+                    chain,
+                    currentVal,
+                    allValues,
+                  });
+                } catch (err) {
+                  console.error(
+                    `[form-chain-effect-engine] onEffectResult 回调执行异常: 字段 ${field}, 错误:`,
+                    err,
+                  );
+                }
               }
-            }
-          }).catch(err => {
-            console.error(`[form-chain-effect-engine] 异步 effect 执行异常: 字段 ${field}, 错误:`, err);
-          });
+            })
+            .catch((err) => {
+              console.error(
+                `[form-chain-effect-engine] 异步 effect 执行异常: 字段 ${field}, 错误:`,
+                err,
+              );
+            });
         } else {
           try {
-            onEffectResult?.({fieldName: field, field: item, result, chain, currentVal, allValues});
+            onEffectResult?.({
+              fieldName: field,
+              field: item,
+              result,
+              chain,
+              currentVal,
+              allValues,
+            });
           } catch (err) {
-            console.error(`[form-chain-effect-engine] onEffectResult 回调执行异常: 字段 ${field}, 错误:`, err);
+            console.error(
+              `[form-chain-effect-engine] onEffectResult 回调执行异常: 字段 ${field}, 错误:`,
+              err,
+            );
           }
         }
       }
@@ -133,52 +173,61 @@ export function useFormChainEffectEngine({
       if (item.dependents && item.dependents.length > 0) {
         for (const dep of item.dependents) {
           // 验证依赖字段名称
-          if (!dep || typeof dep !== 'string') {
-            console.error(`[form-chain-effect-engine] 无效的依赖字段名称: ${dep}, 来源字段: ${field}`);
+          if (!dep || typeof dep !== "string") {
+            console.error(
+              `[form-chain-effect-engine] 无效的依赖字段名称: ${dep}, 来源字段: ${field}`,
+            );
             continue;
           }
           trigger(dep, extendChain(chain, dep), visited);
         }
       }
     },
-    [form, config, enableAdvanced, debugLog, effectActions, onEffectResult]
+    [form, config, enableAdvanced, debugLog, effectActions, onEffectResult],
   );
 
   const onValuesChange = useCallback(
     (changed: Record<string, any>) => {
-      if (!changed || typeof changed !== 'object') {
-        console.error('[form-chain-effect-engine] 无效的 changed 参数:', changed);
+      if (!changed || typeof changed !== "object") {
+        console.error(
+          "[form-chain-effect-engine] 无效的 changed 参数:",
+          changed,
+        );
         return;
       }
-      
+
       const visited = new Set<string>();
       const changedKeys = Object.keys(changed);
       if (changedKeys.length === 0) {
         if (debugLog) {
-          console.log('[form-chain-effect-engine] 没有检测到字段变更');
+          console.log("[form-chain-effect-engine] 没有检测到字段变更");
         }
         return;
       }
-      
+
       // 只处理第一个变更的字段（保持原有逻辑）
       const changedKey = changedKeys[0];
-      trigger(changedKey, createChain(changedKey, enableAdvanced, trigger), visited);
+      trigger(
+        changedKey,
+        createChain(changedKey, enableAdvanced, trigger),
+        visited,
+      );
     },
-    [trigger, enableAdvanced, debugLog]
+    [trigger, enableAdvanced, debugLog],
   );
 
   const manualTrigger = useCallback(
     (field: string, value?: any) => {
-      if (!field || typeof field !== 'string') {
-        console.error('[form-chain-effect-engine] 无效的字段名称:', field);
+      if (!field || typeof field !== "string") {
+        console.error("[form-chain-effect-engine] 无效的字段名称:", field);
         return;
       }
-      
+
       const visited = new Set<string>();
       const chain = createChain(field, enableAdvanced, trigger);
       trigger(field, chain, visited, value);
     },
-    [trigger, enableAdvanced]
+    [trigger, enableAdvanced],
   );
 
   return {

@@ -13,9 +13,11 @@ Thumbs.db
 
 # Tests and coverage
 coverage/
-*.test.ts
 *.test.tsx
 __tests__/
 
 # Env
 .env
+
+# Documentation
+docs/

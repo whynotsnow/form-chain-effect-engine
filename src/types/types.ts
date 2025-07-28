@@ -1,4 +1,4 @@
-import { FormInstance } from 'antd';
+import { FormInstance } from "antd";
 
 export interface Chain {
   source: string;
@@ -24,15 +24,16 @@ export type EffectFn<EA = Record<string, any>> = (
   changedValue: any,
   allValues: Record<string, any>,
   chain: Chain,
-  effectActions?: EA
+  effectActions?: EA,
 ) => void;
 
+export type EffectConfig<EA> = {
+  dependents?: string[];
+  effect?: EffectFn<EA>;
+} & Record<string, any>;
 
 export interface FormChainEffectMap<EA = Record<string, any>> {
-  [field: string]: {
-    dependents?: string[];
-    effect?: EffectFn<EA>;
-  };
+  [field: string]: EffectConfig<EA>;
 }
 
 export interface UseFormChainEffectEngineOptions<EA = Record<string, any>> {
@@ -50,7 +51,7 @@ export type TriggerFn = (
   field: string,
   chain: Chain,
   visited: Set<string>,
-  overrideValue?: any
+  overrideValue?: any,
 ) => void;
 
 export interface UseFormChainEffectEngineConfig {
