@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.3] - 2024-12-19
+
+### 🔧 修复
+
+- **GitHub Actions Release 创建修复**: 修复 Release 创建失败问题
+  - 将已弃用的 `actions/create-release@v1` 替换为 `softprops/action-gh-release@v1`
+  - 添加工作流权限配置 `contents: write` 和 `packages: write`
+  - 优化 Release 内容格式和 tag 名称获取方式
+
 ## [2.0.2] - 2024-12-19
 
 ### 🔧 修复
