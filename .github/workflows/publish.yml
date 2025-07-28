@@ -20,30 +20,25 @@ jobs:
           node-version: "18"
           cache: "npm"
 
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
       - name: 📥 Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: 🔍 Lint and format check
         run: |
-          pnpm run lint:check
-          pnpm run format:check
+          npm run lint:check
+          npm run format:check
 
       - name: 🔧 Type check
-        run: pnpm run type-check
+        run: npm run type-check
 
       - name: ✅ Run tests
-        run: pnpm test
+        run: npm test
 
       - name: 🛠️ Build
-        run: pnpm run build
+        run: npm run build
 
       - name: 🚀 Publish to npm
-        run: pnpm publish --no-git-checks
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
