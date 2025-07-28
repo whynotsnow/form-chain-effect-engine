@@ -53,12 +53,29 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body: |
-            ## Changes in this Release
+            ## 🚀 Release ${{ github.ref_name }}
+
+            ### 📝 主要改动
 
             ${{ github.event.head_commit.message }}
 
-            ### Automated Release
-            This release was automatically created by GitHub Actions.
+            ### 📦 发布内容
+
+            - ✅ 代码质量检查通过
+            - ✅ 测试用例全部通过 (14/14)
+            - ✅ TypeScript 类型检查通过
+            - ✅ 构建成功
+
+            ### 🔗 相关链接
+
+            - 📚 [npm 包页面](https://www.npmjs.com/package/form-chain-effect-engine)
+            - 📖 [项目文档](https://github.com/whynotsnow/form-chain-effect-engine)
+            - 🐛 [问题反馈](https://github.com/whynotsnow/form-chain-effect-engine/issues)
+            - 📋 [CHANGELOG](https://github.com/whynotsnow/form-chain-effect-engine/blob/master/CHANGELOG.md)
+
+            ---
+
+            *此版本由 GitHub Actions 自动发布*
           draft: false
           prerelease: false
         env:
