@@ -21,3 +21,5 @@ __tests__/
 
 # Documentation
 docs/
+# 保留 Release 模板使用指南
+!docs/RELEASE_TEMPLATE_GUIDE.md

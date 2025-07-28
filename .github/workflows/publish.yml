@@ -47,36 +47,30 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: 📝 准备 Release 内容
+        id: release_content
+        run: |
+          # 读取模板文件
+          TEMPLATE_CONTENT=$(cat .github/release-template.md)
+
+          # 替换版本号
+          RELEASE_CONTENT="${TEMPLATE_CONTENT//\{\{VERSION\}\}/${{ github.ref_name }}}"
+
+          # 输出到文件，供下一步使用
+          echo "$RELEASE_CONTENT" > release_body.md
+
+          # 设置输出变量
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: 🏷️ Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          body: |
-            ## 🚀 Release ${{ github.ref_name }}
-
-            ### 📝 主要改动
-
-            ${{ github.event.head_commit.message }}
-
-            ### 📦 发布内容
-
-            - ✅ 代码质量检查通过
-            - ✅ 测试用例全部通过 (14/14)
-            - ✅ TypeScript 类型检查通过
-            - ✅ 构建成功
-
-            ### 🔗 相关链接
-
-            - 📚 [npm 包页面](https://www.npmjs.com/package/form-chain-effect-engine)
-            - 📖 [项目文档](https://github.com/whynotsnow/form-chain-effect-engine)
-            - 🐛 [问题反馈](https://github.com/whynotsnow/form-chain-effect-engine/issues)
-            - 📋 [CHANGELOG](https://github.com/whynotsnow/form-chain-effect-engine/blob/master/CHANGELOG.md)
-
-            ---
-
-            *此版本由 GitHub Actions 自动发布*
-          draft: false
+          body: ${{ steps.release_content.outputs.content }}
+          draft: true
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
